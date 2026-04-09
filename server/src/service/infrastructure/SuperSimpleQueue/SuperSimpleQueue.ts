@@ -5,6 +5,7 @@ import { ISuperSimpleQueueHelper } from "@/service/infrastructure/SuperSimpleQue
 import { Monitor, MonitorType, supportsGeoCheck } from "@/types/monitor.js";
 import type { IEscalationService } from "@/service/business/escalationService.js";
 const SERVICE_NAME = "JobQueue";
+const ESCALATION_CHECK_INTERVAL_MS = 60 * 1000; // Check for escalation triggers every 60 seconds
 
 type QueueJobFailure = {
 	monitorId: string | number;
@@ -120,7 +121,7 @@ export class SuperSimpleQueue implements ISuperSimpleQueue {
 
 			// Add escalation evaluation job if escalation service is available
 			if (this.escalationService) {
-				this.scheduler.addJob({ id: "check-escalations", template: "check-escalations", active: true, repeat: 60 * 1000 });
+				this.scheduler.addJob({ id: "check-escalations", template: "check-escalations", active: true, repeat: ESCALATION_CHECK_INTERVAL_MS });
 			}
 
 			return true;

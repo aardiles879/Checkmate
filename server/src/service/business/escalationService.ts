@@ -203,9 +203,12 @@ export class EscalationService implements IEscalationService {
 
 		// Send notifications for this rule
 		const sentAt = new Date();
+		const incidentDurationMinutes = incident.startTime
+			? Math.floor((Date.now() - new Date(incident.startTime).getTime()) / 60000)
+			: 0;
 		let status: "sent" | "failed" = "sent";
 		try {
-			await this.sendEscalationNotifications(nextRule);
+			await this.sendEscalationNotifications(nextRule, incidentDurationMinutes, policy.name);
 		} catch (error) {
 			status = "failed";
 			this.logger.error({
@@ -216,10 +219,11 @@ export class EscalationService implements IEscalationService {
 			});
 		}
 
-		// Determine the next rule after this one to set nextEscalationTime
+		// Determine the next rule after this one. After triggering level N (nextRule),
+		// wait nextRule.durationMinutes before triggering level N+1 (ruleAfterNext).
 		const ruleAfterNext = policy.escalationRules.find((r) => r.level === nextRule.level + 1);
 		const nextEscalationTime = ruleAfterNext
-			? new Date(Date.now() + ruleAfterNext.durationMinutes * 60 * 1000).toISOString()
+			? new Date(Date.now() + nextRule.durationMinutes * 60 * 1000).toISOString()
 			: null;
 
 		// Update incident
@@ -238,12 +242,16 @@ export class EscalationService implements IEscalationService {
 		});
 	};
 
-	private sendEscalationNotifications = async (rule: EscalationRule): Promise<void> => {
+	private sendEscalationNotifications = async (rule: EscalationRule, incidentDurationMinutes: number, monitorName: string): Promise<void> => {
 		if (!rule.notificationIds || rule.notificationIds.length === 0) {
 			return;
 		}
-		// Re-use the test notification path to send notifications by their IDs
-		await this.notificationsService.testAllNotifications(rule.notificationIds);
+		await this.notificationsService.sendEscalationNotification(
+			rule.notificationIds,
+			rule.level,
+			incidentDurationMinutes,
+			monitorName
+		);
 	};
 
 	private recordTriggeredRule = async (

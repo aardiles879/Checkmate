@@ -17,6 +17,7 @@ export interface INotificationsService {
 
 	sendTestNotification: (notification: Partial<Notification>) => Promise<boolean>;
 	testAllNotifications: (notificationIds: string[]) => Promise<boolean>;
+	sendEscalationNotification: (notificationIds: string[], escalationLevel: number, incidentDurationMinutes: number, monitorName: string) => Promise<boolean>;
 }
 
 const SERVICE_NAME = "NotificationsService";
@@ -172,6 +173,50 @@ export class NotificationsService implements INotificationsService {
 			return false;
 		}
 		return true;
+	};
+
+	sendEscalationNotification = async (
+		notificationIds: string[],
+		escalationLevel: number,
+		incidentDurationMinutes: number,
+		monitorName: string
+	): Promise<boolean> => {
+		const notifications = await this.notificationsRepository.findNotificationsByIds(notificationIds);
+		const settings = this.settingsService.getSettings();
+		const clientHost = settings.clientHost || "Host not defined";
+
+		const message: NotificationMessage = {
+			type: "monitor_down",
+			severity: "critical",
+			monitor: {
+				id: "",
+				name: monitorName,
+				url: "",
+				type: "unknown",
+				status: "down",
+			},
+			content: {
+				title: `Escalation Level ${escalationLevel}: ${monitorName} is still down`,
+				summary: `${monitorName} has been down for ${incidentDurationMinutes} minute${incidentDurationMinutes !== 1 ? "s" : ""}. Escalation level ${escalationLevel} triggered.`,
+				timestamp: new Date(),
+			},
+			clientHost,
+			metadata: {
+				teamId: "",
+				notificationReason: `escalation_level_${escalationLevel}`,
+			},
+		};
+
+		const dummyMonitor = { id: "", name: monitorName, url: "", type: "http", status: "down" } as unknown as Monitor;
+		const dummyStatus = {} as MonitorStatusResponse;
+		const dummyDecision = {} as MonitorActionDecision;
+
+		const tasks = notifications.map((notification) =>
+			this.send(notification, dummyMonitor, dummyStatus, dummyDecision, message)
+		);
+		const outcomes = await Promise.all(tasks);
+		const succeeded = outcomes.filter(Boolean).length;
+		return succeeded > 0;
 	};
 
 	createNotification = async (notificationData: Partial<Notification>, userId: string, teamId: string): Promise<Notification> => {
