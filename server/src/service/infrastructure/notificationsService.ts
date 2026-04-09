@@ -207,13 +207,27 @@ export class NotificationsService implements INotificationsService {
 			},
 		};
 
-		const dummyMonitor = { id: "", name: monitorName, url: "", type: "http", status: "down" } as unknown as Monitor;
-		const dummyStatus = {} as MonitorStatusResponse;
-		const dummyDecision = {} as MonitorActionDecision;
+		const tasks = notifications.map((notification) => {
+			switch (notification.type) {
+				case "webhook":
+					return this.webhookProvider.sendMessage!(notification, message);
+				case "slack":
+					return this.slackProvider.sendMessage!(notification, message);
+				case "matrix":
+					return this.matrixProvider.sendMessage!(notification, message);
+				case "pager_duty":
+					return this.pagerDutyProvider.sendMessage!(notification, message);
+				case "discord":
+					return this.discordProvider.sendMessage!(notification, message);
+				case "email":
+					return this.emailProvider.sendMessage!(notification, message);
+				case "teams":
+					return this.teamsProvider.sendMessage!(notification, message);
+				default:
+					return Promise.resolve(false);
+			}
+		});
 
-		const tasks = notifications.map((notification) =>
-			this.send(notification, dummyMonitor, dummyStatus, dummyDecision, message)
-		);
 		const outcomes = await Promise.all(tasks);
 		const succeeded = outcomes.filter(Boolean).length;
 		return succeeded > 0;

@@ -220,10 +220,10 @@ export class EscalationService implements IEscalationService {
 		}
 
 		// Determine the next rule after this one. After triggering level N (nextRule),
-		// wait nextRule.durationMinutes before triggering level N+1 (ruleAfterNext).
+		// wait ruleAfterNext.durationMinutes before triggering level N+1 (ruleAfterNext).
 		const ruleAfterNext = policy.escalationRules.find((r) => r.level === nextRule.level + 1);
 		const nextEscalationTime = ruleAfterNext
-			? new Date(Date.now() + nextRule.durationMinutes * 60 * 1000).toISOString()
+			? new Date(Date.now() + ruleAfterNext.durationMinutes * 60 * 1000).toISOString()
 			: null;
 
 		// Update incident
