@@ -20,6 +20,7 @@ import {
 	InviteService,
 	MaintenanceWindowService,
 	IncidentService,
+	EscalationService,
 	// Notification providers
 	WebhookProvider,
 	SlackProvider,
@@ -44,6 +45,7 @@ import {
 	IMaintenanceWindowService,
 	IStatusPageService,
 	IIncidentService,
+	IEscalationService,
 	INotificationMessageBuilder,
 	ISettingsService,
 	EnvConfig,
@@ -95,6 +97,8 @@ import {
 	MongoIncidentRepository,
 	MongoTeamsRepository,
 	MongoMaintenanceWindowsRepository,
+	MongoEscalationPoliciesRepository,
+	MongoEscalationHistoryRepository,
 	IMonitorsRepository,
 	IChecksRepository,
 	IGeoChecksRepository,
@@ -108,6 +112,8 @@ import {
 	IIncidentsRepository,
 	ITeamsRepository,
 	IMaintenanceWindowsRepository,
+	IEscalationPoliciesRepository,
+	IEscalationHistoryRepository,
 } from "@/repositories/index.js";
 import { ILogger } from "@/utils/logger.js";
 
@@ -127,6 +133,7 @@ export type InitializedServices = {
 	maintenanceWindowService: IMaintenanceWindowService;
 	monitorService: IMonitorService;
 	incidentService: IIncidentService;
+	escalationService: IEscalationService;
 	logger: ILogger;
 	notificationsService: INotificationsService;
 	statusPageService: IStatusPageService;
@@ -146,6 +153,8 @@ export type InitializedServices = {
 	incidentsRepository: IIncidentsRepository;
 	teamsRepository: ITeamsRepository;
 	maintenanceWindowsRepository: IMaintenanceWindowsRepository;
+	escalationPoliciesRepository: IEscalationPoliciesRepository;
+	escalationHistoryRepository: IEscalationHistoryRepository;
 };
 
 export const initializeServices = async ({
@@ -178,6 +187,8 @@ export const initializeServices = async ({
 	const incidentsRepository = new MongoIncidentRepository();
 	const teamsRepository = new MongoTeamsRepository();
 	const maintenanceWindowsRepository = new MongoMaintenanceWindowsRepository();
+	const escalationPoliciesRepository = new MongoEscalationPoliciesRepository();
+	const escalationHistoryRepository = new MongoEscalationHistoryRepository();
 
 	// Network providers
 	const pingProvider = new PingProvider(ping);
@@ -244,6 +255,14 @@ export const initializeServices = async ({
 		settingsService,
 		logger,
 		notificationMessageBuilder
+	);
+
+	const escalationService = new EscalationService(
+		escalationPoliciesRepository,
+		escalationHistoryRepository,
+		incidentsRepository,
+		notificationsService,
+		logger
 	);
 
 	const superSimpleQueueHelper = new SuperSimpleQueueHelper(
@@ -324,6 +343,7 @@ export const initializeServices = async ({
 		maintenanceWindowService,
 		monitorService,
 		incidentService,
+		escalationService,
 		logger,
 		notificationsService,
 		statusPageService,
@@ -343,6 +363,8 @@ export const initializeServices = async ({
 		incidentsRepository,
 		teamsRepository,
 		maintenanceWindowsRepository,
+		escalationPoliciesRepository,
+		escalationHistoryRepository,
 	};
 
 	return services;
