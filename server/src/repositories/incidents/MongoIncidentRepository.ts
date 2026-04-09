@@ -61,7 +61,7 @@ class MongoIncidentRepository implements IIncidentsRepository {
 			resolvedByEmail: doc.resolvedByEmail ?? null,
 			comment: doc.comment ?? null,
 			escalationPolicyId: doc.escalationPolicyId ? this.toStringId(doc.escalationPolicyId) : null,
-			lastEscalationLevel: doc.lastEscalationLevel ?? 0,
+			lastEscalationLevel: doc.lastEscalationLevel,
 			nextEscalationTime: doc.nextEscalationTime ? this.toDateString(doc.nextEscalationTime) : null,
 			createdAt: this.toDateString(doc.createdAt),
 			updatedAt: this.toDateString(doc.updatedAt),
