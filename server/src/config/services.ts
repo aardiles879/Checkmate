@@ -216,8 +216,6 @@ export const initializeServices = async ({
 
 	const notificationMessageBuilder = new NotificationMessageBuilder();
 
-	const incidentService = new IncidentService(logger, incidentsRepository, monitorsRepository, usersRepository, notificationMessageBuilder);
-
 	const checkService = new CheckService(monitorsRepository, logger, checksRepository);
 
 	const globalPingService = new GlobalPingService(logger);
@@ -265,6 +263,8 @@ export const initializeServices = async ({
 		logger
 	);
 
+	const incidentService = new IncidentService(logger, incidentsRepository, monitorsRepository, usersRepository, notificationMessageBuilder, escalationService);
+
 	const superSimpleQueueHelper = new SuperSimpleQueueHelper(
 		logger,
 		networkService,
@@ -284,7 +284,7 @@ export const initializeServices = async ({
 		geoChecksRepository
 	);
 
-	const superSimpleQueue = await SuperSimpleQueue.create(logger, superSimpleQueueHelper, monitorsRepository);
+	const superSimpleQueue = await SuperSimpleQueue.create(logger, superSimpleQueueHelper, monitorsRepository, escalationService);
 
 	// Business services
 	const userService = new UserService({

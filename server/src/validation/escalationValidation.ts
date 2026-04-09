@@ -37,6 +37,10 @@ export const escalationPolicyIdParamValidation = z.object({
 	id: z.string().min(1, "Policy ID is required"),
 });
 
+export const monitorIdParamValidation = z.object({
+	monitorId: z.string().min(1, "Monitor ID is required"),
+});
+
 export const incidentIdParamValidation = z.object({
 	incidentId: z.string().min(1, "Incident ID is required"),
 });

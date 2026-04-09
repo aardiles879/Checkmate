@@ -13,6 +13,7 @@ export interface IEscalationService {
 	createEscalationPolicy(data: Partial<EscalationPolicy>): Promise<EscalationPolicy>;
 	getEscalationPoliciesByTeam(teamId: string): Promise<EscalationPolicy[]>;
 	getEscalationPolicyById(id: string, teamId: string): Promise<EscalationPolicy>;
+	getEscalationPolicyByMonitorId(monitorId: string, teamId: string): Promise<EscalationPolicy | null>;
 	updateEscalationPolicy(id: string, teamId: string, data: Partial<EscalationPolicy>): Promise<EscalationPolicy>;
 	deleteEscalationPolicy(id: string, teamId: string): Promise<EscalationPolicy>;
 	assignPolicyToIncident(incidentId: string, teamId: string, monitorId: string): Promise<Incident | null>;
@@ -73,6 +74,10 @@ export class EscalationService implements IEscalationService {
 
 	getEscalationPolicyById = async (id: string, teamId: string): Promise<EscalationPolicy> => {
 		return await this.escalationPoliciesRepository.findById(id, teamId);
+	};
+
+	getEscalationPolicyByMonitorId = async (monitorId: string, teamId: string): Promise<EscalationPolicy | null> => {
+		return await this.escalationPoliciesRepository.findActiveByMonitorId(monitorId, teamId);
 	};
 
 	updateEscalationPolicy = async (id: string, teamId: string, data: Partial<EscalationPolicy>): Promise<EscalationPolicy> => {

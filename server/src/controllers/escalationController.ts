@@ -6,6 +6,7 @@ import {
 	createEscalationPolicyBodyValidation,
 	updateEscalationPolicyBodyValidation,
 	escalationPolicyIdParamValidation,
+	monitorIdParamValidation,
 	incidentIdParamValidation,
 } from "@/validation/escalationValidation.js";
 
@@ -15,6 +16,7 @@ export interface IEscalationController {
 	createEscalationPolicy: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
 	getEscalationPoliciesByTeam: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
 	getEscalationPolicyById: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
+	getEscalationPolicyByMonitorId: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
 	updateEscalationPolicy: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
 	deleteEscalationPolicy: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
 	getEscalationHistoryByIncident: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
@@ -68,6 +70,23 @@ class EscalationController implements IEscalationController {
 			const { id } = escalationPolicyIdParamValidation.parse(req.params);
 
 			const policy = await this.escalationService.getEscalationPolicyById(id, teamId);
+
+			return res.status(200).json({
+				success: true,
+				msg: "Escalation policy retrieved successfully",
+				data: policy,
+			});
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	getEscalationPolicyByMonitorId = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+		try {
+			const teamId = requireTeamId(req.user?.teamId);
+			const { monitorId } = monitorIdParamValidation.parse(req.params);
+
+			const policy = await this.escalationService.getEscalationPolicyByMonitorId(monitorId, teamId);
 
 			return res.status(200).json({
 				success: true,

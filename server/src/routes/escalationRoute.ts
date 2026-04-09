@@ -15,6 +15,7 @@ class EscalationRoutes {
 		// Escalation policy routes
 		this.router.post("/policies", this.escalationController.createEscalationPolicy);
 		this.router.get("/policies", this.escalationController.getEscalationPoliciesByTeam);
+		this.router.get("/policies/monitor/:monitorId", this.escalationController.getEscalationPolicyByMonitorId);
 		this.router.get("/policies/:id", this.escalationController.getEscalationPolicyById);
 		this.router.put("/policies/:id", this.escalationController.updateEscalationPolicy);
 		this.router.delete("/policies/:id", this.escalationController.deleteEscalationPolicy);
